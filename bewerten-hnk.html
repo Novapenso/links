@@ -30,6 +30,10 @@
   .app { background: #ffb400; color: #111; border: 2px solid #e5a200; }
   .web { background: #fff; color: #111; border: 2px solid #c9c9c9; font-weight: 600; display: none; }
   small { display: block; color: #666; font-size: 0.85rem; line-height: 1.45; margin-top: 18px; }
+  .book { margin: 28px 0 0; }
+  .book img { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto;
+              border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.20); }
+  .book figcaption { margin-top: 12px; color: #666; font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -43,6 +47,11 @@
   <a id="web-link" class="btn web" href="https://www.amazon.de/review/create-review?asin=3951998768">Im Browser öffnen (Anmeldung nötig)</a>
 
   <small>Ohne installierte Amazon-App öffnet sich stattdessen die Amazon-Seite. Dort kurz anmelden, dann erscheint das Formular.</small>
+
+  <figure class="book">
+    <img src="harte-nuesse-mockup.jpg" width="720" height="720" alt="Das Buch „Harte Nüsse für kluge Männer“ auf einem Holztisch" loading="lazy">
+    <figcaption>Henning Ostwald · 151 Rätsel in 7 Stufen</figcaption>
+  </figure>
 </main>
 
 <script>
