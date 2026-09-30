@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Harte Nüsse für kluge Männer – Rezension schreiben</title>
+
+<!-- App Links: Messenger/Facebook lesen diese Angaben aus und können die Amazon-App direkt öffnen -->
+<meta property="al:ios:url" content="com.amazon.mobile.shopping.web://amazon.de/review/create-review?asin=3951998768">
+<meta property="al:ios:app_store_id" content="297606951">
+<meta property="al:ios:app_name" content="Amazon">
+<meta property="al:android:url" content="com.amazon.mobile.shopping.web://amazon.de/review/create-review?asin=3951998768">
+<meta property="al:android:package" content="com.amazon.mShop.android.shopping">
+<meta property="al:android:app_name" content="Amazon">
+<meta property="al:web:url" content="https://www.amazon.de/review/create-review?asin=3951998768">
+<meta property="og:title" content="Harte Nüsse für kluge Männer – Rezension schreiben">
+<meta property="og:description" content="Öffnet das Bewertungsformular in der Amazon-App.">
+
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         background: #f6f4ef; color: #1a1a1a; }
+  main { max-width: 420px; margin: 0 auto; padding: 28px 20px 40px; text-align: center; }
+  h1 { font-size: 1.35rem; line-height: 1.3; margin: 18px 0 6px; }
+  p { font-size: 1rem; line-height: 1.5; margin: 8px 0 22px; color: #444; }
+  .btn { display: block; width: 100%; padding: 17px 16px; margin: 0 0 14px; border-radius: 12px;
+         font-size: 1.1rem; font-weight: 700; text-decoration: none; }
+  .app { background: #ffb400; color: #111; border: 2px solid #e5a200; }
+  .web { background: #fff; color: #111; border: 2px solid #c9c9c9; font-weight: 600; }
+  small { display: block; color: #666; font-size: 0.85rem; line-height: 1.45; margin-top: 18px; }
+  .cover { width: 96px; height: auto; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Deine Rezension zu<br>„Harte Nüsse für kluge Männer“</h1>
+  <p>Tippe auf den gelben Knopf. Die Amazon-App öffnet direkt das Bewertungsformular, dort bist du schon angemeldet.</p>
+
+  <a id="app-link" class="btn app" href="com.amazon.mobile.shopping.web://amazon.de/review/create-review?asin=3951998768">In der Amazon-App öffnen</a>
+  <a class="btn web" href="https://www.amazon.de/review/create-review?asin=3951998768">Im Browser öffnen (Anmeldung nötig)</a>
+
+  <small>Passiert beim gelben Knopf nichts, ist die Amazon-App nicht installiert. Dann bitte den zweiten Knopf nehmen.</small>
+</main>
+
+<script>
+  // Kein automatischer Sprung: Messenger blockiert automatische App-Weiterleitungen,
+  // ein Antippen durch den Leser wird dagegen durchgelassen.
+  // Android bekommt einen Intent-Link mit Browser-Rückfall, iOS das Amazon-URL-Schema.
+  (function () {
+    var ua = navigator.userAgent || "";
+    if (/Android/i.test(ua)) {
+      document.getElementById("app-link").href =
+        "intent://amazon.de/review/create-review?asin=3951998768#Intent;scheme=com.amazon.mobile.shopping.web;" +
+        "package=com.amazon.mShop.android.shopping;" +
+        "S.browser_fallback_url=https%3A%2F%2Fwww.amazon.de%2Freview%2Fcreate-review%3Fasin%3D3951998768;end";
+    }
+  })();
+</script>
+</body>
+</html>
