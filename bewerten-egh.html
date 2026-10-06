@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Endgegner Heiligabend – Rezension schreiben</title>
+
+<!-- App Links (vom Messenger beim Bot-Knopf nicht ausgewertet, schaden aber nicht) -->
+<meta property="al:ios:url" content="com.amazon.mobile.shopping.web://amazon.de/review/create-review?asin=3903749001">
+<meta property="al:ios:app_store_id" content="297606951">
+<meta property="al:ios:app_name" content="Amazon">
+<meta property="al:android:url" content="com.amazon.mobile.shopping.web://amazon.de/review/create-review?asin=3903749001">
+<meta property="al:android:package" content="com.amazon.mShop.android.shopping">
+<meta property="al:android:app_name" content="Amazon">
+<meta property="al:web:url" content="https://www.amazon.de/review/create-review?asin=3903749001">
+<meta property="og:title" content="Endgegner Heiligabend – Rezension schreiben">
+<meta property="og:description" content="Öffnet das Bewertungsformular in der Amazon-App.">
+
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         background: #f6f4ef; color: #1a1a1a; }
+  main { max-width: 420px; margin: 0 auto; padding: 28px 20px 40px; text-align: center; }
+  h1 { font-size: 1.35rem; line-height: 1.3; margin: 18px 0 6px; }
+  p { font-size: 1rem; line-height: 1.5; margin: 8px 0 22px; color: #444; }
+  .btn { display: block; width: 100%; padding: 17px 16px; margin: 0 0 14px; border-radius: 12px;
+         font-size: 1.1rem; font-weight: 700; text-decoration: none; }
+  .app { background: #ffb400; color: #111; border: 2px solid #e5a200; }
+  .web { background: #fff; color: #111; border: 2px solid #c9c9c9; font-weight: 600; display: none; }
+  small { display: block; color: #666; font-size: 0.85rem; line-height: 1.45; margin-top: 18px; }
+  .book { margin: 28px 0 0; }
+  .book img { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto;
+              border-radius: 14px; box-shadow: 0 10px 28px rgba(0,0,0,.20); }
+  .book figcaption { margin-top: 12px; color: #666; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Deine Rezension zu<br>„Endgegner Heiligabend“</h1>
+  <p>Tippe auf den gelben Knopf. Die Amazon-App öffnet direkt das Bewertungsformular, dort bist du schon angemeldet.</p>
+
+  <!-- Ein normaler https-Link auf amazon.de: Vom Leser auf dieser fremden Seite angetippt,
+       öffnet iOS damit die Amazon-App (Universal Link). Ein App-Schema bleibt im Messenger hängen. -->
+  <a id="app-link" class="btn app" href="https://www.amazon.de/review/create-review?asin=3903749001">Rezension in der Amazon-App schreiben</a>
+  <a id="web-link" class="btn web" href="https://www.amazon.de/review/create-review?asin=3903749001">Im Browser öffnen (Anmeldung nötig)</a>
+
+  <small>Ohne installierte Amazon-App öffnet sich stattdessen die Amazon-Seite. Dort kurz anmelden, dann erscheint das Formular.</small>
+
+  <figure class="book">
+    <img src="endgegner-mockup.jpg" width="720" height="720" alt="Das Buch „Endgegner Heiligabend“" loading="lazy">
+    <figcaption>Jannik Volkers · 77 Rätsel in 3 Leveln</figcaption>
+  </figure>
+</main>
+
+<script>
+  // Kein automatischer Sprung: Messenger blockiert automatische App-Weiterleitungen,
+  // ein Antippen durch den Leser wird durchgelassen.
+  // iOS: der https-Link selbst öffnet die App (Universal Link), getestet 30.09.2026.
+  // Android: Intent-Link mit Browser-Rückfall, dazu der Browser-Knopf als zweite Möglichkeit.
+  (function () {
+    var ua = navigator.userAgent || "";
+    if (/Android/i.test(ua)) {
+      document.getElementById("app-link").href =
+        "intent://amazon.de/review/create-review?asin=3903749001#Intent;scheme=com.amazon.mobile.shopping.web;" +
+        "package=com.amazon.mShop.android.shopping;" +
+        "S.browser_fallback_url=https%3A%2F%2Fwww.amazon.de%2Freview%2Fcreate-review%3Fasin%3D3903749001;end";
+      document.getElementById("web-link").style.display = "block";
+    }
+  })();
+</script>
+</body>
+</html>
