@@ -1,0 +1,29 @@
+{
+  "name": "Himmelskalender – Mondkrater in Sicht!",
+  "short_name": "Himmelskalender",
+  "description": "Mondphasen, Planeten und welche der 33 Missionen heute Abend passen.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0c1322",
+  "theme_color": "#0c1322",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Himmelskalender zum Buch „Mondkrater in Sicht!“: Mondphasen, Planeten und welche der 33 Missionen heute Abend passen.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0c1322">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Himmelskalender">
+<title>Mondkrater-Himmelskalender</title>
+<style>
+/* Layout: ein Beobachtungsblatt in einer Spalte – oben Ort und Zeit, dann der Mond im Okularkreis,
+   „Heute möglich“ als Liste der 33 Missionen, Planeten, Logbuch. Dunkel zuerst, weil man draußen nachts liest. */
+:root{
+  --grund:#0c1322; --flaeche:#141d33; --flaeche2:#1b2643; --linie:#2a3759; --text:#e9eef8; --leise:#9ba7c3;
+  --akzent:#ffc24a; --gut:#5ed39a; --spaeter:#82bcff; --nein:#8892aa; --warn:#ff7d6e;
+  --tA:#9fb2d8; --tB:#f2a965; --tC:#74acf0; --tD:#b294e6; --tE:#72cc97;
+  --f-display:ui-rounded,'SF Pro Rounded','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --f-text:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --radius:14px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --grund:#f3f5fa; --flaeche:#ffffff; --flaeche2:#edf0f7; --linie:#d6dce9; --text:#1a2235; --leise:#59647d;
+    --akzent:#a86500; --gut:#1b8653; --spaeter:#2a62b5; --nein:#697287; --warn:#bf3f2d;
+    --tA:#5a6f96; --tB:#c0661c; --tC:#2f6aae; --tD:#6a4c9c; --tE:#3f8a5c; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --grund:#f3f5fa; --flaeche:#ffffff; --flaeche2:#edf0f7; --linie:#d6dce9; --text:#1a2235; --leise:#59647d;
+  --akzent:#a86500; --gut:#1b8653; --spaeter:#2a62b5; --nein:#697287; --warn:#bf3f2d;
+  --tA:#5a6f96; --tB:#c0661c; --tC:#2f6aae; --tD:#6a4c9c; --tE:#3f8a5c; color-scheme:light;
+}
+:root[data-rot="1"]{
+  --grund:#090000; --flaeche:#160303; --flaeche2:#200505; --linie:#3b0b0b; --text:#ff5b4a; --leise:#b9382c;
+  --akzent:#ff6c52; --gut:#ff5b4a; --spaeter:#e0503f; --nein:#8d2a22; --warn:#ff7d6e;
+  --tA:#ff5b4a; --tB:#ff5b4a; --tC:#ff5b4a; --tD:#ff5b4a; --tE:#ff5b4a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--grund);color:var(--text);font-family:var(--f-text);font-size:16px;line-height:1.5;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:2rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.3rem;font-weight:800}
+h3{font-size:1rem;font-weight:600;color:var(--leise);letter-spacing:.04em;text-transform:uppercase}
+p{margin:0}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--leise)}
+.kopf{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--akzent);outline-offset:2px}
+.knopf{background:var(--flaeche2);border:1px solid var(--linie);border-radius:999px;padding:8px 16px;font-weight:600}
+.knopf[aria-pressed="true"]{background:var(--akzent);color:var(--grund);border-color:var(--akzent)}
+.regler{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--radius);padding:14px}
+.regler label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--leise);min-width:0}
+.regler select,.regler input{background:var(--flaeche2);border:1px solid var(--linie);border-radius:10px;padding:9px 10px;font-size:1rem;min-width:0;width:100%}
+.warnung{background:color-mix(in srgb,var(--warn) 16%,var(--flaeche));border:1.5px solid var(--warn);border-radius:var(--radius);padding:12px 14px;font-weight:500}
+.karte{background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--radius);padding:16px}
+.mond{display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:480px){.mond{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.okular{width:180px;max-width:100%;aspect-ratio:1;border-radius:50%;background:#05070d;border:10px solid #3a4152;box-shadow:inset 0 0 18px #000;display:grid;place-items:center;overflow:hidden}
+.okular canvas{width:42%;height:auto;display:block}
+:root[data-rot="1"] .okular canvas{filter:grayscale(1) sepia(1) saturate(7) hue-rotate(-45deg) brightness(.75)}
+:root[data-rot="1"] .okular{border-color:#2a0606}
+.mondtext{display:flex;flex-direction:column;gap:6px;min-width:0}
+.gross{font-family:var(--f-display);font-weight:800;font-size:1.45rem}
+.leise{color:var(--leise);font-size:.9rem}
+.schalter{display:inline-flex;gap:8px;align-items:center;font-size:.88rem;color:var(--leise);margin-top:4px}
+.schalter input{width:18px;height:18px;accent-color:var(--akzent)}
+.zeitleiste{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;font-variant-numeric:tabular-nums}
+.zeitleiste b{font-weight:600}
+.liste{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ms{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;background:var(--flaeche);border:1px solid var(--linie);border-radius:12px;padding:10px 12px}
+.nr{font-family:var(--f-display);font-weight:800;font-size:1.05rem;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--grund);font-variant-numeric:tabular-nums}
+.tA{background:var(--tA)}.tB{background:var(--tB)}.tC{background:var(--tC)}.tD{background:var(--tD)}.tE{background:var(--tE)}
+.ms .titel{font-weight:600}
+.ms .zeile{font-size:.9rem;color:var(--leise)}
+.ms .zeile.gut{color:var(--gut)}
+.ms .zeile.spaeter{color:var(--spaeter)}
+.ms .hinweis{font-size:.85rem;color:var(--akzent)}
+.wann{margin-top:4px;background:none;border:1px dashed var(--linie);border-radius:999px;padding:3px 10px;font-size:.8rem;color:var(--leise)}
+details summary{cursor:pointer;font-family:var(--f-display);font-weight:600;color:var(--leise);padding:6px 0}
+.planeten{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:8px}
+.pl{background:var(--flaeche);border:1px solid var(--linie);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pl .name{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:800;font-size:1.1rem}
+.punkt{width:12px;height:12px;border-radius:50%;flex:none}
+.pl .status{font-size:.9rem}
+.pl .status.gut{color:var(--gut)}
+.pl .extra{font-size:.82rem;color:var(--leise)}
+.fortschritt{height:10px;border-radius:999px;background:var(--flaeche2);overflow:hidden;margin:8px 0 12px}
+.fortschritt i{display:block;height:100%;background:var(--gut);width:0}
+.log{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.log button{display:flex;gap:8px;align-items:center;text-align:left;background:var(--flaeche);border:1px solid var(--linie);border-radius:10px;padding:8px;font-size:.82rem;line-height:1.25;min-width:0}
+.log button .nr{width:30px;height:30px;font-size:.85rem;flex:none}
+.log button[aria-pressed="true"]{border-color:var(--gut);background:color-mix(in srgb,var(--gut) 14%,var(--flaeche))}
+.log button small{display:block;color:var(--gut);font-variant-numeric:tabular-nums}
+.leer{color:var(--leise);font-size:.9rem;padding:6px 0}
+footer{font-size:.82rem;color:var(--leise);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--linie);padding-top:14px}
+footer b{color:var(--text)}
+a{color:var(--spaeter)}
+.kal{display:flex;flex-direction:column;gap:10px}
+.kal-kopf{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.kal-kopf h2{flex:1;text-align:center}
+.pfeil{width:40px;height:40px;padding:0;display:grid;place-items:center;font-size:1.3rem;line-height:1}
+.kal-reihe{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;border-top:1px solid var(--linie);padding-top:10px}
+@media (max-width:480px){.kal-reihe{grid-template-columns:1fr;gap:4px}}
+.kal-l{font-family:var(--f-display);font-weight:800;color:var(--akzent)}
+.kal ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.kal li b{font-weight:600}
+.kal .pl-nein{color:var(--leise)}
+.install{display:flex;flex-direction:column;gap:8px}
+.install .knoepfe{display:flex;gap:8px;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.fortschritt i{transition:width .4s ease}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="kopf">
+    <div>
+      <p class="eyebrow">Begleiter zum Buch „Mondkrater in Sicht!“</p>
+      <h1>Himmelskalender</h1>
+    </div>
+    <button class="knopf" id="rot" aria-pressed="false" title="Rotes Licht schont deine an die Dunkelheit gewöhnten Augen">Rotlicht</button>
+  </header>
+
+  <section class="regler" aria-label="Ort und Zeit">
+    <label for="ort">Wo bist du?<select id="ort"></select></label>
+    <label for="datum">Datum<input type="date" id="datum"></label>
+    <label for="zeit">Uhrzeit<input type="time" id="zeit" min="16:00" max="23:50" step="600"></label>
+    <button class="knopf" id="heute" type="button">Heute Abend</button>
+  </section>
+
+  <section class="karte kal" aria-labelledby="h-kal">
+    <p class="eyebrow" style="text-align:center">Dein Himmelskalender</p>
+    <div class="kal-kopf">
+      <button class="knopf pfeil" id="kal-zurueck" type="button" aria-label="Voriger Monat">‹</button>
+      <h2 id="h-kal">Himmelskalender</h2>
+      <button class="knopf pfeil" id="kal-vor" type="button" aria-label="Nächster Monat">›</button>
+    </div>
+    <div class="kal-reihe"><div class="kal-l">Mond</div><div id="kal-mond"></div></div>
+    <div class="kal-reihe"><div class="kal-l">Planeten</div><ul id="kal-planeten"></ul></div>
+    <div class="kal-reihe"><div class="kal-l">Missionen</div><ul id="kal-missionen"></ul></div>
+    <p class="leise">Die Zahlen sind die Missionen aus dem Buch. Was heute Abend genau zu welcher Uhrzeit passt, steht weiter unten.</p>
+  </section>
+
+  <h2 style="margin-top:6px">Heute Abend</h2>
+
+  <div class="warnung" id="sonnenwarnung" hidden>Die Sonne ist um diese Zeit noch am Himmel. Lass das Teleskop zu und schau nie in Richtung Sonne. Stell eine spätere Uhrzeit ein.</div>
+
+  <section class="karte mond" aria-label="Der Mond">
+    <div class="okular"><canvas id="mondbild" width="360" height="360" aria-label="So sieht der Mond heute aus"></canvas></div>
+    <div class="mondtext">
+      <p class="eyebrow">Der Mond heute</p>
+      <p class="gross" id="phase">–</p>
+      <p id="mondinfo"></p>
+      <p class="leise" id="mondpos"></p>
+      <label class="schalter" for="prisma"><input type="checkbox" id="prisma"> So wie im Zenitprisma (seitenverkehrt)</label>
+    </div>
+  </section>
+
+  <section class="karte" aria-label="Der Abend">
+    <div class="zeitleiste" id="abend"></div>
+  </section>
+
+  <section aria-labelledby="h-jetzt">
+    <h2 id="h-jetzt">Das geht jetzt</h2>
+    <p class="leise" id="jetzt-zeit"></p>
+    <ul class="liste" id="liste-jetzt"></ul>
+    <h3 style="margin-top:18px">Später oder früher heute Abend</h3>
+    <ul class="liste" id="liste-spaeter"></ul>
+    <details style="margin-top:14px">
+      <summary id="sum-nicht">Heute nicht</summary>
+      <ul class="liste" id="liste-nicht"></ul>
+    </details>
+  </section>
+
+  <section aria-labelledby="h-planeten">
+    <h2 id="h-planeten">Planeten heute Abend</h2>
+    <div class="planeten" id="planeten"></div>
+  </section>
+
+  <section aria-labelledby="h-log">
+    <h2 id="h-log">Dein Logbuch</h2>
+    <p class="leise" id="fortschritt-text"></p>
+    <div class="fortschritt"><i id="fortschritt"></i></div>
+    <div class="log" id="logbuch"></div>
+  </section>
+
+  <section class="karte install" id="install" hidden aria-label="Als App speichern">
+    <b>Tipp: Als App aufs Handy</b>
+    <p class="leise" id="install-text">iPhone: In Safari unten auf „Teilen“ tippen, dann „Zum Home-Bildschirm“. Android: Im Chrome-Menü (⋮) „App installieren“ oder „Zum Startbildschirm hinzufügen“. Danach funktioniert der Himmelskalender auch draußen ohne Internet.</p>
+    <div class="knoepfe"><button class="knopf" id="install-knopf" type="button" hidden>Jetzt als App speichern</button><button class="knopf" id="install-weg" type="button">Ausblenden</button></div>
+  </section>
+
+  <footer>
+    <p><b>Sonnenregel:</b> Schau nie mit Teleskop, Sucher oder Fernglas in die Sonne. Der Himmelskalender schlägt nur Ziele vor, wenn die Sonne untergegangen ist. Venus beobachtest du nur abends.</p>
+    <p>Das Wetter kennt der Himmelskalender nicht. Schau selbst, ob der Himmel klar ist.</p>
+    <p>Datenschutz: Dein Logbuch, dein Ort und deine Einstellungen werden nur auf diesem Gerät gespeichert. Die App schickt keine Daten an uns.</p>
+    <p>Ein Angebot des W4 Verlags zum Buch „Mondkrater in Sicht!“ von Ben Kortmann. <a href="https://mail.w4-publishing.com/fl/6b979cd2-c6fb-45b2-8934-72ac8ffc529b/" target="_blank" rel="noopener">Impressum</a> · <a href="https://mail.w4-publishing.com/fl/f17d6897-c8d7-4dfc-bd86-281d63d9ef13/" target="_blank" rel="noopener">Datenschutz</a></p>
+    <p>Berechnung mit Astronomy Engine von Don Cross (MIT-Lizenz). Mondbild: NASA Scientific Visualization Studio (gemeinfrei). Version 1.0, 16.11.2026.</p>
+  </footer>
+</main>
+
+<img id="mondtextur" alt="" hidden src="data:image/jpeg;base64,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">
+<script src="astronomy.browser.min.js"></script>
+<script id="kern">
+/* Himmelsrechnung ohne Bedienoberfläche (in Node testbar). Braucht das globale Objekt Astronomy. */
+const TAG = 864e5, GRAD = Math.PI / 180;
+
+const ORTE = [
+  ["Mitte Deutschlands", 50.0, 10.0], ["Berlin", 52.52, 13.40], ["Hamburg", 53.55, 9.99], ["München", 48.14, 11.58],
+  ["Köln", 50.94, 6.96], ["Frankfurt am Main", 50.11, 8.68], ["Stuttgart", 48.78, 9.18], ["Düsseldorf", 51.23, 6.78],
+  ["Leipzig", 51.34, 12.37], ["Dresden", 51.05, 13.74], ["Hannover", 52.37, 9.73], ["Nürnberg", 49.45, 11.08],
+  ["Bremen", 53.08, 8.80], ["Kiel", 54.32, 10.12], ["Rostock", 54.09, 12.10], ["Freiburg", 47.99, 7.85],
+  ["Erfurt", 50.98, 11.03], ["Kassel", 51.31, 9.48], ["Wien", 48.21, 16.37], ["Graz", 47.07, 15.44],
+  ["Linz", 48.31, 14.29], ["Salzburg", 47.81, 13.06], ["Innsbruck", 47.27, 11.39], ["Zürich", 47.38, 8.54],
+  ["Bern", 46.95, 7.45], ["Basel", 47.56, 7.59]
+];
+
+const TEILE = { A: "Der Mond", B: "Die Planeten", C: "Sterne und Sternbilder", D: "Schätze in der Tiefe", E: "Ohne Teleskop" };
+
+/* ph = Mondphasenwinkel (0 Neumond, 90 zunehmender Halbmond, 180 Vollmond). Sterne: ra/de in Grad (J2000, SIMBAD). */
+const MISSIONEN = [
+  { nr: 1, t: "Die Schattengrenze", teil: "A", art: "mond", ph: [25, 130] },
+  { nr: 2, t: "Die dunklen Meere", teil: "A", art: "mond", ph: [130, 176] },
+  { nr: 3, t: "Kopernikus, ein Riesenkrater", teil: "A", art: "mond", ph: [100, 126] },
+  { nr: 4, t: "Wie hoch sind Mondberge?", teil: "A", art: "mond", ph: [75, 110] },
+  { nr: 5, t: "Tycho und die Strahlen", teil: "A", art: "mond", ph: [150, 195] },
+  { nr: 6, t: "Clavius, Krater im Krater", teil: "A", art: "mond", ph: [95, 126] },
+  { nr: 7, t: "Licht von der Erde", teil: "A", art: "mond", ph: [15, 60], tief: true },
+  { nr: 8, t: "Mond-Detektiv", teil: "A", art: "mond", ph: [25, 150], zwei: true },
+  { nr: 9, t: "Stern oder Planet?", teil: "B", art: "planet", koerper: ["Venus", "Jupiter", "Saturn", "Mars"], minAlt: 10 },
+  { nr: 10, t: "Venus ist nicht rund", teil: "B", art: "venus" },
+  { nr: 11, t: "Jupiter, die kleine Scheibe", teil: "B", art: "planet", koerper: ["Jupiter"], minAlt: 15 },
+  { nr: 12, t: "Jupitermonde auf Wanderschaft", teil: "B", art: "planet", koerper: ["Jupiter"], minAlt: 10, zwei: true },
+  { nr: 13, t: "Saturn hat einen Ring", teil: "B", art: "planet", koerper: ["Saturn"], minAlt: 15 },
+  { nr: 14, t: "Mars, der winzige Rote", teil: "B", art: "mars" },
+  { nr: 15, t: "Mizar und sein Reiterlein", teil: "C", art: "stern", ziele: [[200.981, 54.925]], minAlt: 25, sonne: -9 },
+  { nr: 16, t: "Der Polarstern zeigt Norden", teil: "C", art: "stern", ziele: [[37.955, 89.264]], minAlt: 10, sonne: -8 },
+  { nr: 17, t: "Das Sommerdreieck", teil: "C", art: "stern", ziele: [[279.235, 38.784], [310.358, 45.280], [297.696, 8.868]], minAlt: 15, sonne: -9 },
+  { nr: 18, t: "Albireo, gold und blau", teil: "C", art: "stern", ziele: [[292.680, 27.960]], minAlt: 25, sonne: -12, mond: "weich" },
+  { nr: 19, t: "Sternenmeer bei Kassiopeia", teil: "C", art: "stern", ziele: [[10.127, 56.537]], minAlt: 25, sonne: -13, mond: "hart" },
+  { nr: 20, t: "Orion: Rot gegen Blau", teil: "C", art: "stern", ziele: [[88.793, 7.407], [78.634, -8.202]], minAlt: 12, sonne: -9 },
+  { nr: 21, t: "Wegas Nachbarn", teil: "C", art: "stern", ziele: [[281.085, 39.670]], minAlt: 25, sonne: -12, mond: "weich" },
+  { nr: 22, t: "Cor Caroli hat einen Partner", teil: "C", art: "stern", ziele: [[194.007, 38.318]], minAlt: 25, sonne: -10 },
+  { nr: 23, t: "Almach, Gold neben Blau", teil: "C", art: "stern", ziele: [[30.975, 42.330]], minAlt: 25, sonne: -10 },
+  { nr: 24, t: "Die Plejaden", teil: "D", art: "stern", ziele: [[56.601, 24.114]], minAlt: 25, sonne: -12, mond: "weich" },
+  { nr: 25, t: "Der Orionnebel", teil: "D", art: "stern", ziele: [[83.820, -5.388]], minAlt: 18, sonne: -14, mond: "hart" },
+  { nr: 26, t: "Der Doppelhaufen", teil: "D", art: "stern", ziele: [[34.741, 57.134]], minAlt: 25, sonne: -13, mond: "weich" },
+  { nr: 27, t: "Die Krippe", teil: "D", art: "stern", ziele: [[130.054, 19.621]], minAlt: 25, sonne: -14, mond: "hart" },
+  { nr: 28, t: "M35 bei den Zwillingen", teil: "D", art: "stern", ziele: [[92.272, 24.336]], minAlt: 25, sonne: -14, mond: "weich" },
+  { nr: 29, t: "M39 im Schwan", teil: "D", art: "stern", ziele: [[322.889, 48.247]], minAlt: 25, sonne: -14, mond: "weich" },
+  { nr: 30, t: "M13, ein Kugelsternhaufen", teil: "D", art: "stern", ziele: [[250.423, 36.461]], minAlt: 30, sonne: -15, mond: "hart" },
+  { nr: 31, t: "Die Andromedagalaxie", teil: "D", art: "stern", ziele: [[10.685, 41.269]], minAlt: 30, sonne: -16, mond: "hart" },
+  { nr: 32, t: "Die Raumstation fliegt vorbei", teil: "E", art: "iss" },
+  { nr: 33, t: "Sternschnuppen-Nacht", teil: "E", art: "meteor" }
+];
+
+const MOND_WANN = {
+  1: "Passt bei zunehmendem Mond, von der schmalen Sichel bis ein paar Tage nach Halbmond.",
+  2: "Passt ein paar Tage vor Vollmond.", 3: "Passt etwa zwei Tage nach Halbmond.", 4: "Passt um den Halbmond herum.",
+  5: "Passt bei fast vollem Mond oder Vollmond.", 6: "Passt ein bis zwei Tage nach Halbmond.",
+  7: "Passt bei schmaler Mondsichel am Abend.", 8: "Passt bei zunehmendem Mond."
+};
+const GUT = { 15: "Februar bis September", 16: "das ganze Jahr", 17: "Juli bis Oktober", 18: "Juni bis November", 19: "das ganze Jahr",
+  20: "Dezember bis März", 21: "Mai bis November", 22: "März bis August", 23: "Oktober bis Februar", 24: "November bis März",
+  25: "Dezember bis März", 26: "September bis April", 27: "Januar bis Mai", 28: "Dezember bis April", 29: "Juni bis Dezember",
+  30: "Mai bis Oktober", 31: "September bis Februar" };
+
+function richtung(az) {
+  const n = ["Norden", "Nordosten", "Osten", "Südosten", "Süden", "Südwesten", "Westen", "Nordwesten"];
+  return n[Math.round((((az % 360) + 360) % 360) / 45) % 8];
+}
+function faeuste(alt) {
+  if (alt >= 78) return "fast senkrecht über dir";
+  const h = Math.round(alt / 5) / 2;
+  if (h < 1) return "knapp über dem Horizont";
+  const g = Math.floor(h), halb = h - g > 0;
+  return (halb ? g + "½" : String(g)) + (h === 1 ? " Faust hoch" : " Fäuste hoch");
+}
+function ortText(p) { return "im " + richtung(p.az) + ", " + faeuste(p.alt); }
+
+function beobachter(ort) { return new Astronomy.Observer(ort[1], ort[2], 0); }
+function horizont(ob, t, raStunden, dec) { const h = Astronomy.Horizon(t, ob, raStunden, dec, "normal"); return { alt: h.altitude, az: h.azimuth }; }
+function koerper(ob, t, name) { const e = Astronomy.Equator(name, t, ob, true, true); return horizont(ob, t, e.ra, e.dec); }
+
+/* Zeit-Kontext mit Zwischenspeicher: Sonne sofort, Mond und Planeten erst bei Bedarf */
+function kontext(ob, t) {
+  const k = { t, sonne: koerper(ob, t, "Sun").alt, _p: {} };
+  k.mond = () => {
+    if (!k._m) {
+      const w = Astronomy.MoonPhase(t), il = Astronomy.Illumination("Moon", t), p = koerper(ob, t, "Moon");
+      k._m = { winkel: w, anteil: il.phase_fraction, zunehmend: w < 180, alt: p.alt, az: p.az };
+    }
+    return k._m;
+  };
+  k.planet = n => (k._p[n] || (k._p[n] = koerper(ob, t, n)));
+  return k;
+}
+function mondStoert(k) { const m = k.mond(); return m.alt > 0 && m.anteil > 0.3; }
+
+/* Venus: größte Abstände von der Sonne · Mars: Oppositionen – einmal je Basisdatum */
+const EREIGNIS_CACHE = {};
+function ereignisse(basis) {
+  const schl = basis.toISOString().slice(0, 10);
+  if (EREIGNIS_CACHE[schl]) return EREIGNIS_CACHE[schl];
+  const venus = []; let t = new Date(basis.getTime() - 300 * TAG);
+  for (let i = 0; i < 6; i++) {
+    const e = Astronomy.SearchMaxElongation("Venus", t);
+    venus.push({ zeit: e.time.date, sicht: e.visibility, winkel: e.elongation });
+    t = new Date(e.time.date.getTime() + 10 * TAG);
+  }
+  const mars = []; t = new Date(basis.getTime() - 820 * TAG);
+  for (let i = 0; i < 3; i++) {
+    const o = Astronomy.SearchRelativeLongitude("Mars", 0, t);
+    mars.push(o.date); t = new Date(o.date.getTime() + 30 * TAG);
+  }
+  return (EREIGNIS_CACHE[schl] = { venus, mars });
+}
+function naechstes(liste, t, filter) {
+  let best = null;
+  for (const e of liste) { if (filter && !filter(e)) continue; const z = e.zeit || e; if (!best || Math.abs(z - t) < Math.abs((best.zeit || best) - t)) best = e; }
+  return best;
+}
+function datumKurz(d) { return d.toLocaleDateString("de-DE", { day: "numeric", month: "numeric" }); }
+function datumLang(d) { return d.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }); }
+
+/* Prüft eine Mission zu einem Zeitpunkt. Ergebnis: ok (true/false/null), grund, pos, hinweis */
+function pruefe(m, ob, k, ev) {
+  if (m.art === "iss") return { ok: null, grund: "Ob und wann die Raumstation heute vorbeifliegt, findest du vorher drinnen heraus, zusammen mit einem Erwachsenen." };
+  if (m.art === "meteor") return meteor(m, k);
+  if (k.sonne > -0.8) return { ok: false, grund: "Die Sonne ist noch am Himmel." };
+  if (m.art === "mond") {
+    const mo = k.mond();
+    if (!(mo.winkel >= m.ph[0] && mo.winkel <= m.ph[1])) return { ok: false, grund: MOND_WANN[m.nr] };
+    if (mo.alt < 8) return { ok: false, grund: mo.alt < 0 ? "Der Mond ist gerade nicht am Himmel." : "Der Mond steht noch zu tief." };
+    if (m.tief && k.sonne > -4) return { ok: false, grund: "Warte, bis die Sonne ganz untergegangen ist." };
+    return { ok: true, pos: mo, hinweis: m.zwei ? "Morgen Abend noch einmal hinschauen." : "" };
+  }
+  if (m.art === "planet") {
+    let best = null;
+    for (const n of m.koerper) {
+      if (n === "Venus") { const r = venusOk(ob, k); if (!r.ok) continue; if (!best || r.pos.alt > best.pos.alt) best = { name: n, pos: r.pos }; continue; }
+      if (k.sonne > -6) continue;
+      const p = k.planet(n);
+      if (p.alt >= m.minAlt && (!best || p.alt > best.pos.alt)) best = { name: n, pos: p };
+    }
+    if (k.sonne > -6 && !best) return { ok: false, grund: "Noch zu hell. Warte, bis es dämmert." };
+    if (!best) return { ok: false, grund: m.koerper.length > 1 ? "Gerade steht kein heller Planet hoch genug." : m.koerper[0] + " steht gerade nicht hoch genug." };
+    return { ok: true, pos: best.pos, name: best.name, hinweis: m.zwei ? "Morgen Abend noch einmal hinschauen." : (m.koerper.length > 1 ? best.name + " ist am besten." : "") };
+  }
+  if (m.art === "venus") {
+    const r = venusOk(ob, k);
+    if (!r.ok) return r;
+    const g = naechstes(ev.venus, k.t, e => e.sicht === "evening");
+    let hinweis = "";
+    if (g) {
+      const tage = (k.t - g.zeit) / TAG;
+      if (tage < -21) hinweis = "Venus sieht noch fast rund aus. Am schönsten wird es um den " + datumKurz(g.zeit) + ".";
+      else if (tage <= 60) hinweis = "Gute Zeit: um den größten Abstand von der Sonne (" + datumKurz(g.zeit) + ") und danach.";
+    }
+    return { ok: true, pos: r.pos, hinweis };
+  }
+  if (m.art === "mars") {
+    const o = naechstes(ev.mars, k.t);
+    const tage = (k.t - o) / TAG;
+    if (Math.abs(tage) > 45) {
+      const neu = ev.mars.find(z => z > k.t);
+      return { ok: false, grund: "Mars ist gerade sehr klein. Gute Zeit: in den Wochen um den " + (neu ? datumLang(neu) : "nächsten Oppositionstermin") + "." };
+    }
+    if (k.sonne > -8) return { ok: false, grund: "Noch zu hell. Warte, bis es dunkler ist." };
+    const p = k.planet("Mars");
+    if (p.alt < 12) return { ok: false, grund: p.alt < 0 ? "Mars ist gerade unter dem Horizont." : "Mars steht noch zu tief." };
+    return { ok: true, pos: p };
+  }
+  // Sterne, Sternhaufen, Nebel
+  if (k.sonne > m.sonne) return { ok: false, grund: "Noch zu hell. Warte, bis es dunkler ist." };
+  const pos = m.ziele.map(z => horizont(ob, k.t, z[0] / 15, z[1]));
+  const tiefster = pos.reduce((a, b) => (b.alt < a.alt ? b : a));
+  if (tiefster.alt < m.minAlt) return { ok: false, grund: tiefster.alt < 0 ? "Steht gerade unter dem Horizont." : "Steht gerade zu tief." };
+  if (m.mond === "hart" && mondStoert(k)) return { ok: false, grund: "Der Mond ist zu hell. Dafür brauchst du einen Abend ohne Mond." };
+  return { ok: true, pos: pos[0], hinweis: m.mond === "weich" && mondStoert(k) ? "Der Mond stört etwas. Ohne Mond siehst du mehr." : "" };
+}
+function venusOk(ob, k) {
+  const el = Astronomy.Elongation("Venus", k.t);
+  if (el.visibility !== "evening") return { ok: false, grund: "Venus steht gerade am Morgenhimmel. Du beobachtest sie nur abends." };
+  if (k.sonne > -3) return { ok: false, grund: "Warte, bis die Sonne ganz untergegangen ist." };
+  const p = k.planet("Venus");
+  if (p.alt < 5) return { ok: false, grund: p.alt < 0 ? "Venus ist schon untergegangen." : "Venus steht zu tief." };
+  return { ok: true, pos: p };
+}
+function meteor(m, k) {
+  const d = k.t, j = d.getFullYear(), mo = d.getMonth(), tag = d.getDate();
+  const nacht = (mo === 7 && tag >= 11 && tag <= 13) || (mo === 11 && tag >= 12 && tag <= 14);
+  if (!nacht) {
+    const kandidaten = [new Date(j, 7, 12), new Date(j, 11, 13), new Date(j + 1, 7, 12)].filter(x => x > d);
+    const n = kandidaten[0], tage = Math.ceil((n - d) / TAG);
+    return { ok: false, grund: "Nächste Sternschnuppen-Nacht: " + (n.getMonth() === 7 ? "12./13. August" : "13./14. Dezember") + " (in " + tage + " Tagen)." };
+  }
+  if (k.sonne > -12) return { ok: false, grund: "Heute ist Sternschnuppen-Nacht. Warte, bis es richtig dunkel ist." };
+  return { ok: true, pos: null, hinweis: mondStoert(k) ? "Der Mond ist hell, du siehst weniger Sternschnuppen." : "Leg dich hin und schau eine halbe Stunde nach oben." };
+}
+
+/* Abend eines Datums: Sonnenuntergang, Dämmerung, Zeitraster bis 23:50 */
+function abend(ob, datum) {
+  const mittag = new Date(datum); mittag.setHours(12, 0, 0, 0);
+  const suche = (h) => { const r = Astronomy.SearchAltitude("Sun", ob, -1, mittag, 1, h); return r ? r.date : null; };
+  const unter = Astronomy.SearchRiseSet("Sun", ob, -1, mittag, 1);
+  const ende = new Date(datum); ende.setHours(23, 50, 0, 0);
+  const start = unter ? new Date(Math.ceil(unter.date.getTime() / 6e5) * 6e5) : new Date(new Date(datum).setHours(18, 0, 0, 0));
+  const raster = [];
+  for (let t = start.getTime(); t <= ende.getTime(); t += 6e5) raster.push(new Date(t));
+  return { untergang: unter ? unter.date : null, d6: suche(-6), d10: suche(-10), d12: suche(-12), d18: suche(-18), ende, raster };
+}
+function mondAufUnter(ob, datum) {
+  const mittag = new Date(datum); mittag.setHours(12, 0, 0, 0);
+  const auf = Astronomy.SearchRiseSet("Moon", ob, +1, mittag, 1), unter = Astronomy.SearchRiseSet("Moon", ob, -1, mittag, 1);
+  return { auf: auf ? auf.date : null, unter: unter ? unter.date : null };
+}
+
+/* Alle Missionen für den Abend: Status zur gewählten Zeit + passende Zeitspanne im Raster */
+function abendPlan(ort, datum, zeit) {
+  const ob = beobachter(ort), ab = abend(ob, datum), ev = ereignisse(datum);
+  const ks = ab.raster.map(t => kontext(ob, t));
+  const kz = kontext(ob, zeit);
+  return MISSIONEN.map(m => {
+    const jetzt = pruefe(m, ob, kz, ev);
+    const oks = ks.map(k => pruefe(m, ob, k, ev).ok === true);
+    let von = null, bis = null;
+    oks.forEach((o, i) => { if (o) { if (!von) von = ab.raster[i]; bis = ab.raster[i]; } });
+    if (!von && jetzt.ok === false) {
+      // Bessere Begründung, wenn das Ziel den ganzen Abend zu tief steht
+      if (m.art === "stern") {
+        const hoch = Math.max(...ks.map(k => Math.min(...m.ziele.map(z => horizont(ob, k.t, z[0] / 15, z[1]).alt))));
+        if (hoch < m.minAlt) jetzt.grund = (hoch < 0 ? "Ist heute Abend nicht am Himmel." : "Steht heute Abend nicht hoch genug.") + " Gut sichtbar: " + GUT[m.nr] + ".";
+        else if (Math.min(...ks.map(k => k.sonne)) > m.sonne) jetzt.grund = "Vor Mitternacht wird es heute nicht dunkel genug. Im Sommer klappt das erst spät in der Nacht.";
+      }
+      if (m.art === "mond") {
+        const w = kz.mond().winkel;
+        const hoch = Math.max(...ks.filter(k => k.sonne <= -0.8).map(k => k.mond().alt));
+        if (w >= m.ph[0] && w <= m.ph[1] && hoch < 8) jetzt.grund = hoch < 0 ? "Der Mond ist heute Abend nicht am Himmel." : "Der Mond steht heute Abend zu tief. In ein, zwei Tagen steht er höher.";
+      }
+    }
+    return { m, jetzt, von, bis };
+  });
+}
+
+/* Nächster passender Abend (auf Knopfdruck) */
+function naechsterAbend(m, ort, datum) {
+  if (m.art === "iss") return null;
+  const ob = beobachter(ort), mondart = m.art === "mond", schritt = mondart ? 1 : 2, max = mondart ? 45 : 380;
+  for (let d = 1; d <= max; d += schritt) {
+    const tag = new Date(datum); tag.setDate(tag.getDate() + d);
+    const ev = ereignisse(tag);
+    for (let h = 17; h <= 23.5; h += 0.5) {
+      const t = new Date(tag); t.setHours(Math.floor(h), (h % 1) * 60, 0, 0);
+      if (pruefe(m, ob, kontext(ob, t), ev).ok === true) return t;
+    }
+  }
+  return null;
+}
+
+/* Planeten-Übersicht */
+function planetenAbend(ort, datum, zeit) {
+  const ob = beobachter(ort), ab = abend(ob, datum), ev = ereignisse(datum);
+  return ["Venus", "Mars", "Jupiter", "Saturn"].map(n => {
+    const k = kontext(ob, zeit), p = k.planet(n);
+    let best = null;
+    for (const t of ab.raster) {
+      const kk = kontext(ob, t);
+      if (kk.sonne > (n === "Venus" ? -3 : -6)) continue;
+      const q = kk.planet(n);
+      if (!best || q.alt > best.alt) best = { alt: q.alt, az: q.az, t };
+    }
+    const r = { name: n, jetzt: p, best, sonne: k.sonne, extra: "" };
+    if (n === "Venus") {
+      const el = Astronomy.Elongation("Venus", zeit);
+      r.morgen = el.visibility !== "evening";
+      const g = naechstes(ev.venus, zeit, e => e.sicht === "evening");
+      if (g) r.extra = "Größter Abstand von der Sonne am Abendhimmel: " + datumLang(g.zeit) + ".";
+    }
+    if (n === "Mars") {
+      const neu = ev.mars.find(z => z > new Date(zeit.getTime() - 45 * TAG));
+      if (neu) r.extra = "Am größten um den " + datumLang(neu) + " (Opposition).";
+    }
+    return r;
+  });
+}
+
+/* Monatsübersicht wie die Beispielseite im Buch (Kapitel 5): Mond · Planeten · Missionen */
+const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+function tagMonat(d) { return d.getDate() + "." + (d.getMonth() + 1) + "."; }
+function spannen(tage, monatEnde) {
+  /* tage: sortierte Tageszahlen → „3. bis 9.11.“, Einzeltage „17.11.“ */
+  const out = []; let a = null, b = null;
+  for (const t of tage) { if (a !== null && t === b + 1) { b = t; continue; } if (a !== null) out.push([a, b]); a = b = t; }
+  if (a !== null) out.push([a, b]);
+  return out;
+}
+function spanneText(a, b, m) { return a === b ? a + "." + m + "." : a + ". bis " + b + "." + m + "."; }
+function monatsKalender(ort, jahr, monat) {
+  const ob = beobachter(ort), m1 = monat + 1, tageImMonat = new Date(jahr, monat + 1, 0).getDate();
+  const start = new Date(jahr, monat, 1, 0, 0, 0), ende = new Date(jahr, monat + 1, 1, 0, 0, 0);
+  // 1. Mond: Hauptphasen mit Datum
+  const namen = ["Neumond", "Halbmond (zunehmend)", "Vollmond", "Halbmond (abnehmend)"], mond = [];
+  let q = Astronomy.SearchMoonQuarter(new Date(start.getTime() - 2 * TAG));
+  while (q.time.date < ende) {
+    if (q.time.date >= start) mond.push({ name: namen[q.quarter], datum: q.time.date });
+    q = Astronomy.NextMoonQuarter(q);
+  }
+  // 2./3. Abende des Monats: zwei Prüfzeiten je Abend (helle Sterne sichtbar, 22 Uhr)
+  const abende = [];
+  for (let tag = 1; tag <= tageImMonat; tag++) {
+    const d = new Date(jahr, monat, tag), mittag = new Date(jahr, monat, tag, 12, 0, 0);
+    const s10 = Astronomy.SearchAltitude("Sun", ob, -1, mittag, 1, -10);
+    let t1 = s10 ? s10.date : new Date(jahr, monat, tag, 22, 30, 0);
+    if (t1.getDate() !== tag || t1.getHours() < 12) t1 = new Date(jahr, monat, tag, 23, 30, 0);
+    const zeiten = [t1];
+    for (const h of (m1 >= 5 && m1 <= 8 ? [22, 23] : [22])) { const t = new Date(jahr, monat, tag, h, 0, 0); if (t > t1) zeiten.push(t); }
+    const ev = ereignisse(d), ks = zeiten.map(t => kontext(ob, t));
+    const ok = new Set();
+    for (const mi of MISSIONEN) { if (mi.art === "iss") continue; if (ks.some(k => pruefe(mi, ob, k, ev).ok === true)) ok.add(mi.nr); }
+    abende.push({ tag, ok, winkel: Astronomy.MoonPhase(t1), dunkel: ks.some(k => !mondStoert(k) && k.sonne <= -10) });
+  }
+  // Planeten in der Monatsmitte: abends, spät oder gar nicht
+  const mitte = new Date(jahr, monat, 15), mitMittag = new Date(jahr, monat, 15, 12, 0, 0);
+  const s8 = Astronomy.SearchAltitude("Sun", ob, -1, mitMittag, 1, -8);
+  let tAbend = s8 ? s8.date : new Date(jahr, monat, 15, 21, 30, 0);
+  if (tAbend < new Date(jahr, monat, 15, 19, 0, 0)) tAbend = new Date(jahr, monat, 15, 19, 0, 0);
+  const planeten = ["Venus", "Mars", "Jupiter", "Saturn"].map(n => {
+    if (n === "Venus") {
+      const el = Astronomy.Elongation("Venus", tAbend);
+      if (el.visibility !== "evening") return { name: n, text: "nur morgens, also nicht beobachten", gut: false };
+      const sU = Astronomy.SearchRiseSet("Sun", ob, -1, mitMittag, 1), t = sU ? new Date(sU.date.getTime() + 40 * 6e4) : tAbend;
+      const p = koerper(ob, t, n);
+      return p.alt >= 5 ? { name: n, text: "abends tief im " + richtung(p.az), gut: true } : { name: n, text: "steht zu nah an der Sonne", gut: false };
+    }
+    const p = koerper(ob, tAbend, n);
+    if (p.alt >= 10) return { name: n, text: "abends im " + richtung(p.az), gut: true };
+    for (let h = 20; h <= 23.5; h += 0.5) {
+      const t = new Date(jahr, monat, 15, Math.floor(h), (h % 1) * 60, 0);
+      if (t <= tAbend) continue;
+      const q2 = koerper(ob, t, n);
+      if (q2.alt >= 10) return { name: n, text: "erst spät am Abend, ab etwa " + Math.floor(h) + " Uhr im " + richtung(q2.az), gut: true };
+    }
+    const nachts = koerper(ob, new Date(jahr, monat, 16, 3, 0, 0), n);
+    return { name: n, text: nachts.alt >= 10 ? "erst spät in der Nacht" : "steht zu nah an der Sonne", gut: false };
+  });
+  // Missionen: Mond-Missionen nach gleichen Tagen gruppiert, dann Planeten, Sterne, Tiefe, ohne Teleskop
+  const nn = n => String(n).padStart(2, "0"), zeilen = [];
+  const BAENDER = [["Schmale Sichel", 12, 80, [1, 7]], ["Halbmond und ein paar Tage danach", 80, 135, [1, 3, 4, 6, 8]], ["Fast voll und Vollmond", 135, 195, [2, 5]]];
+  for (const [name, w0, w1, nrs] of BAENDER) {
+    const tage = abende.filter(a => a.winkel >= w0 && a.winkel < w1 && nrs.some(n => a.ok.has(n)));
+    if (!tage.length) continue;
+    const welche = nrs.filter(n => tage.some(a => a.ok.has(n)));
+    zeilen.push({ art: "mond", text: name + " (" + spannen(tage.map(a => a.tag)).map(([x, y]) => spanneText(x, y, m1)).join(", ") + "): " + welche.map(nn).join(", ") });
+  }
+  const tageVon = nr => abende.filter(a => a.ok.has(nr)).map(a => a.tag);
+  const plan = [];
+  for (const nr of [9, 10, 11, 12, 13, 14]) {
+    const t = tageVon(nr); if (!t.length) continue;
+    plan.push(t.length >= tageImMonat - 2 ? nn(nr) : nn(nr) + " (" + spannen(t).map(([a, b]) => spanneText(a, b, m1)).join(", ") + ")");
+  }
+  if (plan.length) zeilen.push({ art: "planet", text: "Planeten: " + plan.join(", ") });
+  const immer = [], dunkel = [], manchmal = [];
+  for (const mi of MISSIONEN.filter(x => x.teil === "C" || x.teil === "D")) {
+    const t = tageVon(mi.nr); if (t.length < 3) continue;
+    if (t.length >= tageImMonat * 0.7) immer.push(nn(mi.nr));
+    else if (mi.mond === "hart") dunkel.push(nn(mi.nr));
+    else manchmal.push(nn(mi.nr) + " (" + spannen(t).map(([x, y]) => spanneText(x, y, m1)).join(", ") + ")");
+  }
+  const dTage = spannen(abende.filter(a => a.dunkel).map(a => a.tag));
+  if (immer.length) zeilen.push({ art: "stern", text: "An jedem klaren Abend: " + immer.join(", ") });
+  if (manchmal.length) zeilen.push({ art: "stern", text: "Nur an manchen Abenden: " + manchmal.join(", ") });
+  if (dunkel.length) zeilen.push({ art: "tief", text: "Ohne hellen Mond" + (dTage.length ? " (" + dTage.map(([x, y]) => spanneText(x, y, m1)).join(", ") + ")" : "") + ": " + dunkel.join(", ") });
+  const meteorTage = m1 === 8 ? [12, 13] : m1 === 12 ? [13, 14] : [];
+  if (meteorTage.length) zeilen.push({ art: "meteor", text: spannen(meteorTage).map(([a, b]) => spanneText(a, b, m1)).join(", ") + ": Sternschnuppen-Nacht (33), am besten spät abends" });
+  return { titel: MONATE[monat] + " " + jahr, mond, planeten, zeilen };
+}
+
+if (typeof module !== "undefined") module.exports = { ORTE, MISSIONEN, TEILE, abendPlan, planetenAbend, naechsterAbend, abend, mondAufUnter, kontext, beobachter, ereignisse, faeuste, richtung, monatsKalender };
+</script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const speicher = {
+    lies(k, w) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : w; } catch (e) { return w; } },
+    schreib(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* Speichern nicht möglich: Logbuch gilt nur für diese Sitzung */ } }
+  };
+  const zustand = { ort: speicher.lies("hk-ort", 0), log: speicher.lies("hk-log", {}), rot: speicher.lies("hk-rot", false), prisma: speicher.lies("hk-prisma", false) };
+
+  const uhr = d => d ? d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "–";
+  const tagText = d => d.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
+
+  ORTE.forEach((o, i) => { const op = document.createElement("option"); op.value = i; op.textContent = o[0]; $("ort").appendChild(op); });
+  $("ort").value = zustand.ort;
+
+  function datumAusFeld() { const [j, m, t] = $("datum").value.split("-").map(Number); return new Date(j, m - 1, t, 0, 0, 0); }
+  function zeitAusFeld() { const d = datumAusFeld(); const [h, mi] = ($("zeit").value || "21:00").split(":").map(Number); d.setHours(h, mi, 0, 0); return d; }
+  function setzeHeute() {
+    const jetzt = new Date();
+    $("datum").value = jetzt.getFullYear() + "-" + pad(jetzt.getMonth() + 1) + "-" + pad(jetzt.getDate());
+    const ob = beobachter(ORTE[$("ort").value]), ab = abend(ob, datumAusFeld());
+    let t = ab.d10 || (ab.untergang ? new Date(ab.untergang.getTime() + 45 * 6e4) : new Date(new Date().setHours(21, 0, 0, 0)));
+    if (ab.untergang && jetzt > ab.untergang && jetzt.getHours() < 24) t = jetzt;
+    t = new Date(Math.round(t.getTime() / 6e5) * 6e5);
+    if (t.getDate() !== jetzt.getDate()) t = new Date(new Date().setHours(23, 50, 0, 0));
+    $("zeit").value = pad(t.getHours()) + ":" + pad(t.getMinutes());
+  }
+
+  function zeichneMond(winkel) {
+    const cv = $("mondbild"), c = cv.getContext("2d"), W = cv.width, r = W / 2 - 4, cx = W / 2, cy = W / 2, img = $("mondtextur");
+    c.clearRect(0, 0, W, W);
+    c.save(); c.beginPath(); c.arc(cx, cy, r, 0, 2 * Math.PI); c.clip();
+    if (img.complete && img.naturalWidth) c.drawImage(img, cx - r, cy - r, 2 * r, 2 * r);
+    const cp = Math.cos(winkel * Math.PI / 180), N = 72, G = Math.PI / 180;
+    c.beginPath();
+    for (let i = 0; i <= N; i++) { const f = (-90 + 180 * i / N) * G; const x = winkel < 180 ? cx - r * Math.cos(f) : cx + r * Math.cos(f); i ? c.lineTo(x, cy - r * Math.sin(f)) : c.moveTo(x, cy - r * Math.sin(f)); }
+    for (let i = N; i >= 0; i--) { const f = (-90 + 180 * i / N) * G; const x = winkel < 180 ? cx + cp * r * Math.cos(f) : cx - cp * r * Math.cos(f); c.lineTo(x, cy - r * Math.sin(f)); }
+    c.closePath(); c.fillStyle = "rgba(5,7,13,0.96)"; c.fill(); c.restore();
+    cv.style.transform = zustand.prisma ? "scaleX(-1)" : "";
+  }
+  function phasenName(w) {
+    if (w < 8 || w > 352) return "Neumond";
+    if (w < 80) return "Zunehmende Sichel";
+    if (w < 100) return "Zunehmender Halbmond";
+    if (w < 168) return "Zunehmender Mond";
+    if (w < 192) return "Vollmond";
+    if (w < 260) return "Abnehmender Mond";
+    if (w < 280) return "Abnehmender Halbmond";
+    return "Abnehmende Sichel";
+  }
+
+  function eintrag(r, modus) {
+    const li = document.createElement("li"); li.className = "ms";
+    let zeile = "", klasse = "";
+    if (modus === "jetzt") { klasse = "gut"; zeile = r.jetzt.pos ? (r.jetzt.name && r.m.koerper && r.m.koerper.length > 1 ? r.jetzt.name + " " : "") + ortText(r.jetzt.pos) : "Jetzt"; }
+    else if (modus === "spaeter") { klasse = "spaeter"; zeile = r.von && r.bis && +r.von !== +r.bis ? "zwischen " + uhr(r.von) + " und " + uhr(r.bis) + " Uhr" : "um " + uhr(r.von) + " Uhr"; }
+    else zeile = r.jetzt.grund || "";
+    const hinweis = modus !== "nicht" && r.jetzt.hinweis ? `<div class="hinweis">${esc(r.jetzt.hinweis)}</div>` : "";
+    const knopf = modus === "nicht" && r.m.art !== "iss" ? `<button class="wann" type="button" data-nr="${r.m.nr}">Wann klappt es?</button>` : "";
+    const iss = r.m.art === "iss" ? `<div class="zeile">Überflüge: <a href="https://spotthestation.nasa.gov" target="_blank" rel="noopener">spotthestation.nasa.gov</a></div>` : "";
+    li.innerHTML = `<span class="nr t${r.m.teil}" title="${esc(TEILE[r.m.teil])}">${r.m.nr}</span><div><div class="titel">${esc(r.m.t)}</div><div class="zeile ${klasse}">${esc(zeile)}</div>${hinweis}${iss}${knopf}</div>`;
+    return li;
+  }
+
+  function zeichneAlles() {
+    const ort = ORTE[$("ort").value], datum = datumAusFeld(), zeit = zeitAusFeld(), ob = beobachter(ort);
+    const ab = abend(ob, datum), k = kontext(ob, zeit), mo = k.mond(), mau = mondAufUnter(ob, datum);
+    $("sonnenwarnung").hidden = k.sonne <= -0.8;
+    zeichneMond(mo.winkel);
+    $("phase").textContent = phasenName(mo.winkel);
+    $("mondinfo").textContent = Math.round(mo.anteil * 100) + " % beleuchtet" + (mo.winkel < 180 ? ", wird jeden Abend voller." : ", nimmt jeden Abend ab.");
+    $("mondpos").textContent = mo.alt > 0 ? "Um " + uhr(zeit) + " Uhr: " + ortText(mo) + "." : "Um " + uhr(zeit) + " Uhr ist der Mond nicht am Himmel." + (mau.auf && mau.auf > zeit ? " Er geht um " + uhr(mau.auf) + " Uhr auf." : "");
+    $("abend").innerHTML = [
+      ["Sonnenuntergang", uhr(ab.untergang)], ["Helle Sterne ab", uhr(ab.d10)], ["Richtig dunkel ab", ab.d18 ? uhr(ab.d18) : "heute nicht"],
+      ["Mondaufgang", uhr(mau.auf)], ["Monduntergang", uhr(mau.unter)]
+    ].map(([a, b]) => `<span>${a} <b>${b}</b></span>`).join("");
+    $("jetzt-zeit").textContent = tagText(datum) + ", " + uhr(zeit) + " Uhr, " + ort[0];
+
+    const plan = abendPlan(ort, datum, zeit);
+    const jetzt = plan.filter(r => r.jetzt.ok === true);
+    const spaeter = plan.filter(r => r.jetzt.ok !== true && r.von);
+    const nicht = plan.filter(r => r.jetzt.ok !== true && !r.von);
+    const fuell = (id, arr, modus, leer) => { const ul = $(id); ul.innerHTML = ""; if (!arr.length) { ul.innerHTML = `<li class="leer">${leer}</li>`; return; } arr.forEach(r => ul.appendChild(eintrag(r, modus))); };
+    fuell("liste-jetzt", jetzt, "jetzt", k.sonne > -0.8 ? "Noch nichts, die Sonne ist am Himmel." : "Um diese Uhrzeit passt gerade keine Mission. Schau unten, was später geht.");
+    fuell("liste-spaeter", spaeter, "spaeter", "Heute Abend kommt nichts mehr dazu.");
+    fuell("liste-nicht", nicht, "nicht", "Alles andere klappt heute.");
+    $("sum-nicht").textContent = "Heute nicht (" + nicht.length + ")";
+
+    $("planeten").innerHTML = planetenAbend(ort, datum, zeit).map(p => {
+      const farbe = { Venus: "#f4e3b0", Mars: "#e0754a", Jupiter: "#e9c99a", Saturn: "#dcc27a" }[p.name];
+      let status, gut = false;
+      if (p.name === "Venus" && p.morgen) status = "Steht gerade am Morgenhimmel. Heute Abend nicht.";
+      else if (p.jetzt.alt > 5 && p.sonne <= (p.name === "Venus" ? -3 : -6)) { status = "Jetzt " + ortText(p.jetzt) + "."; gut = true; }
+      else if (p.best && p.best.alt > 5) status = "Am besten um " + uhr(p.best.t) + " Uhr, " + ortText(p.best) + ".";
+      else status = "Heute Abend nicht zu sehen.";
+      return `<div class="pl"><div class="name"><span class="punkt" style="background:${farbe}"></span>${p.name}</div><div class="status ${gut ? "gut" : ""}">${esc(status)}</div>${p.extra ? `<div class="extra">${esc(p.extra)}</div>` : ""}</div>`;
+    }).join("");
+    zeichneLog();
+  }
+
+  const kal = { jahr: null, monat: null };
+  function zeichneKalender() {
+    const r = monatsKalender(ORTE[$("ort").value], kal.jahr, kal.monat);
+    $("h-kal").textContent = r.titel;
+    $("kal-mond").textContent = r.mond.length ? r.mond.map(x => x.name + " " + x.datum.getDate() + "." + (x.datum.getMonth() + 1) + ".").join(" · ") : "–";
+    $("kal-planeten").innerHTML = r.planeten.map(p => `<li class="${p.gut ? "" : "pl-nein"}"><b>${p.name}</b> ${esc(p.text)}</li>`).join("");
+    $("kal-missionen").innerHTML = r.zeilen.length ? r.zeilen.map(z => { const i = z.text.indexOf(": "); return `<li><b>${esc(z.text.slice(0, i + 1))}</b> ${esc(z.text.slice(i + 2))}</li>`; }).join("") : `<li class="leer">In diesem Monat passt keine Mission.</li>`;
+  }
+  function kalAufDatum() { const d = datumAusFeld(); kal.jahr = d.getFullYear(); kal.monat = d.getMonth(); zeichneKalender(); }
+  function kalSchritt(n) { const d = new Date(kal.jahr, kal.monat + n, 1); kal.jahr = d.getFullYear(); kal.monat = d.getMonth(); zeichneKalender(); }
+
+  function zeichneLog() {
+    const n = Object.keys(zustand.log).length;
+    $("fortschritt-text").textContent = n + " von 33 Missionen geschafft" + (n === 33 ? ". Du bist Himmelsforscher!" : ". Tippe an, was du geschafft hast.");
+    $("fortschritt").style.width = (n / 33 * 100) + "%";
+    $("logbuch").innerHTML = MISSIONEN.map(m => {
+      const d = zustand.log[m.nr];
+      return `<button type="button" data-log="${m.nr}" aria-pressed="${d ? "true" : "false"}"><span class="nr t${m.teil}">${m.nr}</span><span>${esc(m.t)}${d ? `<small>geschafft am ${esc(d)}</small>` : ""}</span></button>`;
+    }).join("");
+  }
+
+  document.addEventListener("click", e => {
+    const w = e.target.closest(".wann");
+    if (w) {
+      const m = MISSIONEN.find(x => x.nr === +w.dataset.nr);
+      w.textContent = "Ich rechne …";
+      setTimeout(() => {
+        const t = naechsterAbend(m, ORTE[$("ort").value], datumAusFeld());
+        w.textContent = t ? "Nächster passender Abend: " + t.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "numeric", year: "numeric" }) + " gegen " + uhr(t) + " Uhr" : "Im nächsten Jahr nicht gefunden";
+        w.disabled = true;
+      }, 20);
+      return;
+    }
+    const l = e.target.closest("[data-log]");
+    if (l) {
+      const nr = +l.dataset.log;
+      if (zustand.log[nr]) delete zustand.log[nr]; else zustand.log[nr] = new Date().toLocaleDateString("de-DE");
+      speicher.schreib("hk-log", zustand.log); zeichneLog();
+    }
+  });
+  $("rot").addEventListener("click", () => { zustand.rot = !zustand.rot; speicher.schreib("hk-rot", zustand.rot); rotSetzen(); });
+  function rotSetzen() { document.documentElement.toggleAttribute("data-rot", zustand.rot); if (zustand.rot) document.documentElement.setAttribute("data-rot", "1"); $("rot").setAttribute("aria-pressed", String(zustand.rot)); }
+  $("prisma").checked = zustand.prisma;
+  $("prisma").addEventListener("change", () => { zustand.prisma = $("prisma").checked; speicher.schreib("hk-prisma", zustand.prisma); $("mondbild").style.transform = zustand.prisma ? "scaleX(-1)" : ""; });
+  $("ort").addEventListener("change", () => { speicher.schreib("hk-ort", +$("ort").value); zeichneAlles(); zeichneKalender(); });
+  $("datum").addEventListener("change", () => { zeichneAlles(); kalAufDatum(); });
+  $("kal-zurueck").addEventListener("click", () => kalSchritt(-1));
+  $("kal-vor").addEventListener("click", () => kalSchritt(1));
+  $("zeit").addEventListener("change", zeichneAlles);
+  $("heute").addEventListener("click", () => { setzeHeute(); zeichneAlles(); kalAufDatum(); });
+
+  // Als App speichern: Hinweis nur im Browser, nicht in der installierten App
+  let installEreignis = null;
+  const alsApp = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  if (!alsApp() && !speicher.lies("hk-install-weg", false)) $("install").hidden = false;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEreignis = e; $("install-knopf").hidden = false; });
+  $("install-knopf").addEventListener("click", async () => { if (!installEreignis) return; installEreignis.prompt(); try { await installEreignis.userChoice; } catch (e) {} installEreignis = null; $("install").hidden = true; });
+  $("install-weg").addEventListener("click", () => { $("install").hidden = true; speicher.schreib("hk-install-weg", true); });
+  try { if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol) && !/claude/.test(location.hostname)) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
+
+  function start() {
+    rotSetzen();
+    if (typeof Astronomy === "undefined") { $("jetzt-zeit").textContent = "Die Himmelsrechnung konnte nicht geladen werden. Prüfe die Internetverbindung und lade die Seite neu."; return; }
+    setzeHeute(); zeichneAlles(); kalAufDatum();
+    const img = $("mondtextur"); if (!img.complete) img.addEventListener("load", zeichneAlles, { once: true });
+  }
+  start();
+})();
+</script>
+</body>
+</html>
