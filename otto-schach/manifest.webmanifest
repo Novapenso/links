@@ -1,0 +1,29 @@
+{
+  "name": "Ottos Schach-Training",
+  "short_name": "Otto-Schach",
+  "description": "60 neue Rätsel, Sammel-Spiel, Bauern-Spiele und Partien gegen Otto. Zum Buch „Ich kann Schach!“.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFBF2",
+  "theme_color": "#3A9D5D",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
